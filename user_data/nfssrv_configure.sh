@@ -31,7 +31,7 @@ sudo systemctl daemon-reload
 sudo mkdir -p /mnt/bv
 sudo mount /mnt/bv
 echo "Start NFS server"
-echo "/mnt/bv (rw,sync,no_root_squash)" | sudo tee -a /etc/exports
+echo "/mnt/bv *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
 sudo sed -i 's/# threads=8/threads=64/g' /etc/nfs.conf
 sudo systemctl enable --now nfs-server rpcbind
 echo "Start changing kernel to RHCK"
