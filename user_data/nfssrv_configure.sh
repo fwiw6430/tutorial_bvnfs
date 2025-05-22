@@ -17,8 +17,11 @@ for ((i = 0; i < ${#ar_bv_dev_name[@]}; i++))
   done
 }
 
+# Configure secondary VNIC connectiong to the subnet for NFS clients
 echo "Start configuring secondary NIC"
 sudo systemctl enable --now ocid.service
+
+# Create file system on block volume
 echo "Start creating volume group"
 sudo vgcreate bv $bv_dev_list
 echo "Start creating logical volume"
@@ -27,13 +30,16 @@ echo "Start formatting XFS file system"
 sudo mkfs.xfs -L blockvolume /dev/bv/bv
 echo "Start mounting file system"
 echo "LABEL=blockvolume /mnt/bv/ xfs defaults,_netdev,noatime 0 0" | sudo tee -a /etc/fstab
-sudo systemctl daemon-reload
 sudo mkdir -p /mnt/bv
-sudo mount /mnt/bv
+sudo systemctl daemon-reload
+
+# Configure NFS server
 echo "Start NFS server"
 echo "/mnt/bv *(rw,sync,no_root_squash)" | sudo tee -a /etc/exports
 sudo sed -i 's/# threads=8/threads=64/g' /etc/nfs.conf
 sudo systemctl enable --now nfs-server rpcbind
+
+# Change Linux kernel from UEK to RHCK
 echo "Start changing kernel to RHCK"
 vmlinuz=`sudo grubby --info=ALL | grep ^kernel= | grep -v -e uek -e rescue | awk -F\" '{print $2}'`
 sudo grubby --set-default $vmlinuz
